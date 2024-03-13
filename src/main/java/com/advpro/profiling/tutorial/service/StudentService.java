@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author muhammad.khadafi
@@ -25,13 +27,18 @@ public class StudentService {
 
     public List<StudentCourse> getAllStudentsWithCourses() {
         List<Student> students = studentRepository.findAll();
+        List<StudentCourse> allStudentCourses = studentCourseRepository.findAll();
+
+        Map<Long, Student> studentMap = students.stream()
+                .collect(Collectors.toMap(Student::getId, student -> student));
+
         List<StudentCourse> studentCourses = new ArrayList<>();
-        for (Student student : students) {
-            List<StudentCourse> studentCoursesByStudent = studentCourseRepository.findByStudentId(student.getId());
-            for (StudentCourse studentCourseByStudent : studentCoursesByStudent) {
+        for (StudentCourse sc : allStudentCourses) {
+            Student student = studentMap.get(sc.getStudent().getId());
+            if (student != null) {
                 StudentCourse studentCourse = new StudentCourse();
                 studentCourse.setStudent(student);
-                studentCourse.setCourse(studentCourseByStudent.getCourse());
+                studentCourse.setCourse(sc.getCourse());
                 studentCourses.add(studentCourse);
             }
         }
@@ -60,4 +67,3 @@ public class StudentService {
         return result.substring(0, result.length() - 2);
     }
 }
-
